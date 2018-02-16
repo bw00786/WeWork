@@ -32,7 +32,7 @@ public class SpiderLeg
     public boolean crawl(String url) throws IOException {
         url = "http://" + url;
         try {
-            synchronized (this) {
+           // synchronized (this) {
                 Connection connection = Jsoup.connect( url ).userAgent( USER_AGENT );
                 Document htmlDocument = connection.get();
                 this.htmlDocument = htmlDocument;
@@ -40,6 +40,7 @@ public class SpiderLeg
                 // indicating that everything is great.
                 {
                     System.out.println( "\n**Visiting** Received web page at " + url );
+                    System.out.println("Thread: "+Thread.currentThread().getName());
                 }
                 if (!connection.response().contentType().contains( "text/html" )) {
                     System.out.println( "**Failure** Retrieved something other than HTML" );
@@ -51,7 +52,7 @@ public class SpiderLeg
                     this.links.add( link.absUrl( "href" ) );
                 }
                 return true;
-            }
+            //}
         }
         catch(IOException ioe)
         {
@@ -83,7 +84,7 @@ public class SpiderLeg
     }
 
 
-    public BlockingQueue<String> getLinks()
+    BlockingQueue<String> getLinks()
     {
         return this.links;
     }

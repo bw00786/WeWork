@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.Set;
 import java.util.concurrent.*;
 
-public class Spider {
+public class Spider  {
     private static final int MAX_PAGES_TO_SEARCH = 10000;
     private static final int numberOfPermits = 100;
 
@@ -31,22 +31,21 @@ public class Spider {
      *
      */
 
-    public void  search(String urlT, String searchWord) throws IOException {
+    public  void  search(String urlT, String searchWord) throws IOException {
 
         //System.out.println("Entering Spider.search");
         //System.out.println("On Threrad "+ Thread.currentThread().getName());
         //System.out.println("String url is " + urlT + " word serch is "+searchWord);
 
-       boolean acquired = false;
-           do {
+
+
                try {
-                   semaphore.acquire();
-                   acquired = true;
-               } catch (final InterruptedException e) {
-                    //LOGGER.warn("InterruptedException whilst aquiring semaphore", e);
-                }
-            } while (!acquired);
-            try {
+                  // semaphore.acquire();
+                  // acquired = true;
+              // } catch (final InterruptedException e) {
+               //     //LOGGER.warn("InterruptedException whilst aquiring semaphore", e);
+               // }
+
                 while (this.pagesVisited.size() < MAX_PAGES_TO_SEARCH) {
                     String currentUrl;
                     SpiderLeg leg = new SpiderLeg();
@@ -65,20 +64,25 @@ public class Spider {
                     // SpiderLeg
                     boolean success = leg.searchForWord( searchWord );
                     if (success) {
-                        synchronized (this) {
+
 
                             StringBuilder results = new StringBuilder( "**Success Word " ).append( String.valueOf( searchWord ) ).append( " found at  " ).append( String.valueOf( currentUrl ) );
                             System.out.println(results);
-                            f0.println( results.toString() );
+                              synchronized (this) {
+                                  f0.println( results.toString() );
+                              }
                             break;
-                        }
+
                     }
                     this.pagesToVisit.addAll( leg.getLinks() );
                 }
                 System.out.println( "\n**Done** Visited " + this.pagesVisited.size() + " web page(s)" );
+                System.out.println("Thread: "+Thread.currentThread().getName());
+                pagesVisited.clear();
+                pagesToVisit.clear();
            } catch (final RejectedExecutionException e) {
                System.out.println( "Task Rejected" );
-               semaphore.release();
+               //semaphore.release();
                 throw e;
             }
     }

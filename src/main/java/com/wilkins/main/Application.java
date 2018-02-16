@@ -7,6 +7,8 @@ import com.wilkins.util.CommonUtils;
 import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
+//** this application is teh main jump point to count web pages
+
 public class Application {
 
 

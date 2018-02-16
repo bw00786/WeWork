@@ -1,27 +1,41 @@
 package com.wilkins.service;
 
-import com.wilkins.pool.BlockingQueue;
-import com.wilkins.pool.TaskExecutor;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class ThreadPool {
 
-     BlockingQueue <Runnable> queue;
-    public ThreadPool(int queueSize, int nThread) {
-        queue = new BlockingQueue<>(queueSize);
-        String threadName = null;
-        TaskExecutor task = null;
+     BlockingQueue<Runnable> queue;
+    public ThreadPool(int queueSize, int nThread) throws InterruptedException {
+        queue = new LinkedBlockingQueue <>( queueSize );
+
         for (int count = 0; count < nThread; count++) {
-        	threadName = "Thread-"+count;
-        	task = new TaskExecutor(queue);
-            Thread thread = new Thread(task, threadName);
-            thread.start();
+            int finalCount = count;
+            new Thread( new Runnable() {
+                @Override
+                public void run() {
+                    try {
+
+                        queue.take().run();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }).start();
+
+
+        	//task = new TaskExecutor(queue);
+            //Thread thread = new Thread(task, threadName);
+
+
         }
     }
 
 
     public void submitTask(Runnable task) throws InterruptedException {
-        queue.enqueue(task);
+        queue.add(task);
     }
 }

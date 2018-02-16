@@ -1,22 +1,22 @@
 package com.wilkins.service;
 
 import com.wilkins.crawler.Spider;
-import com.wilkins.pool.TaskExecutor;
-import com.wilkins.util.CommonUtils;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.*;
-import java.util.stream.Stream;
 
 public class ProcessFile {
 
 
     private static final String searchPattern = "search";
-    private static ThreadPool pool = new ThreadPool( 100, 100 );
+    private static ThreadPool pool;
+
+    static {
+        try {
+            pool = new ThreadPool( 1000, 100 );
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
     //private static ExecutorService pool = Executors.newCachedThreadPool();
 
 
@@ -38,10 +38,15 @@ public class ProcessFile {
                // System.out.println( "newURI is " + newUri );
 
                 pool.submitTask( new Runnable() {
+                                     ;
                                      @Override
                                      public void run() {
                                          try {
+                                             String name = Thread.currentThread().getName();
+                                             System.out.println("Task Started by Thread :" + name);
                                              spider.search( newUri, searchPattern );
+                                             String name2 = Thread.currentThread().getName();
+                                             System.out.println("Task Completed by Thread :" + name);
                                          } catch (IOException e) {
                                              e.printStackTrace();
                                          }
