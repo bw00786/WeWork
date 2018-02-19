@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -19,6 +20,10 @@ public class SpiderLeg
             "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1";
     private BlockingQueue<String> links = new LinkedBlockingQueue<String>();
     private volatile Document htmlDocument;
+    private static final int numberOfPermits = 20;
+    private Semaphore semaphore = new Semaphore(numberOfPermits, true);
+
+
 
 
     /**
@@ -32,8 +37,13 @@ public class SpiderLeg
     public boolean crawl(String url) throws IOException {
         url = "http://" + url;
         try {
-           // synchronized (this) {
-                Connection connection = Jsoup.connect( url ).userAgent( USER_AGENT );
+         
+            try {
+                semaphore.acquire(); // aquire a permit
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Connection connection = Jsoup.connect( url ).userAgent( USER_AGENT );
                 Document htmlDocument = connection.get();
                 this.htmlDocument = htmlDocument;
                 if (connection.response().statusCode() == 200) // 200 is the HTTP OK status code
@@ -58,6 +68,9 @@ public class SpiderLeg
         {
             // We were not successful in our HTTP request
             return false;
+
+        }finally {
+            semaphore.release();
         }
     }
 

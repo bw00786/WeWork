@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 
 public class Spider  {
     private static final int MAX_PAGES_TO_SEARCH = 10000;
-    private static final int numberOfPermits = 100;
+
 
 
     private ConcurrentHashMap <Object, Object> pagesVisited1 = new ConcurrentHashMap<>();
@@ -16,7 +16,7 @@ public class Spider  {
     //private List <String> pagesToVisit = new LinkedList <String>();
     private BlockingQueue<String> pagesToVisit = new LinkedBlockingQueue<>();
      private PrintWriter f0 = new PrintWriter(new FileWriter("/tmp/results.txt"));
-    private Semaphore semaphore = new Semaphore(numberOfPermits, true);
+
 
     public Spider() throws IOException {
     }
