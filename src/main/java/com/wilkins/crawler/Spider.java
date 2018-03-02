@@ -3,6 +3,7 @@ package com.wilkins.crawler;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -14,7 +15,7 @@ public class Spider  {
     private ConcurrentHashMap <Object, Object> pagesVisited1 = new ConcurrentHashMap<>();
     private Set pagesVisited = ConcurrentHashMap.newKeySet();
     //private List <String> pagesToVisit = new LinkedList <String>();
-    private BlockingQueue<String> pagesToVisit = new LinkedBlockingQueue<>();
+    private Queue<String> pagesToVisit = new ConcurrentLinkedQueue<>();
      private PrintWriter f0 = new PrintWriter(new FileWriter("/tmp/results.txt"));
 
 
@@ -33,18 +34,12 @@ public class Spider  {
 
     public  void  search(String urlT, String searchWord) throws IOException {
 
-        //System.out.println("Entering Spider.search");
-        //System.out.println("On Threrad "+ Thread.currentThread().getName());
-        //System.out.println("String url is " + urlT + " word serch is "+searchWord);
 
 
+               boolean success;
 
                try {
-                  // semaphore.acquire();
-                  // acquired = true;
-              // } catch (final InterruptedException e) {
-               //     //LOGGER.warn("InterruptedException whilst aquiring semaphore", e);
-               // }
+
 
                 while (this.pagesVisited.size() < MAX_PAGES_TO_SEARCH) {
                     String currentUrl;
@@ -54,37 +49,53 @@ public class Spider  {
                         //System.out.println( "currentURL is " + currentUrl );
                         if (urlT== null) {
                             System.out.println( "System halting at thread " + Thread.currentThread().getName() );
-                           System.exit( 255 );
+                           //System.exit( 255 );
                        }
                         this.pagesVisited.add( urlT );
                     } else {
                         currentUrl = this.nextUrl();
                     }
-                    leg.crawl( currentUrl ); // Lots of stuff happening here. Look at the crawl method in
+                    try {
+                        leg.crawl( currentUrl ); // Lots of stuff happening here. Look at the crawl method in
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     // SpiderLeg
-                    boolean success = leg.searchForWord( searchWord );
+
+                         success = leg.searchForWord( searchWord );
+
                     if (success) {
 
 
                             StringBuilder results = new StringBuilder( "**Success Word " ).append( String.valueOf( searchWord ) ).append( " found at  " ).append( String.valueOf( currentUrl ) );
-                            System.out.println(results);
-                              synchronized (this) {
+                            System.out.println(results.toString());
+                             synchronized (this) {
                                   f0.println( results.toString() );
-                              }
+                             }
                             break;
 
+                    }else {
+                        System.out.println("Adding all links");
+                        this.pagesToVisit.addAll( leg.getLinks() );
+                        return;
                     }
-                    this.pagesToVisit.addAll( leg.getLinks() );
                 }
                 System.out.println( "\n**Done** Visited " + this.pagesVisited.size() + " web page(s)" );
                 System.out.println("Thread: "+Thread.currentThread().getName());
-                pagesVisited.clear();
+                pagesVisited.clear() ;
                 pagesToVisit.clear();
+
+
+
            } catch (final RejectedExecutionException e) {
                System.out.println( "Task Rejected" );
                //semaphore.release();
                 throw e;
             }
+            finally {
+
+               }
+
     }
 
 

@@ -1,7 +1,9 @@
 package com.wilkins.service;
 
 
-import java.util.concurrent.BlockingQueue;
+//import java.util.concurrent.BlockingQueue;
+import com.wilkins.pool.BlockingQueue;
+
 import java.util.concurrent.LinkedBlockingQueue;
 
 
@@ -9,7 +11,7 @@ public class ThreadPool {
 
      BlockingQueue<Runnable> queue;
     public ThreadPool(int queueSize, int nThread) throws InterruptedException {
-        queue = new LinkedBlockingQueue <>( queueSize );
+        queue = new BlockingQueue <>( queueSize );
 
         for (int count = 0; count < nThread; count++) {
             int finalCount = count;
@@ -17,14 +19,16 @@ public class ThreadPool {
                 @Override
                 public void run() {
                     try {
+                        queue.dequeue().run();
 
-                        queue.take().run();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
 
-            }).start();
+            } ).start();
+
+
 
 
         	//task = new TaskExecutor(queue);
@@ -36,6 +40,6 @@ public class ThreadPool {
 
 
     public void submitTask(Runnable task) throws InterruptedException {
-        queue.add(task);
+        queue.enqueue( task );
     }
 }

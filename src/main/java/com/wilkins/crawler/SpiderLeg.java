@@ -34,16 +34,14 @@ public class SpiderLeg
      *            - The URL to visit
      * @return whether or not the crawl was successful
      */
-    public boolean crawl(String url) throws IOException {
+    public boolean  crawl(String url) throws IOException, InterruptedException {
         url = "http://" + url;
         try {
          
-            try {
-                semaphore.acquire(); // aquire a permit
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            Connection connection = Jsoup.connect( url ).userAgent( USER_AGENT );
+
+                //semaphore.acquire(); // aquire a permit
+
+                Connection connection = Jsoup.connect( url ).userAgent( USER_AGENT );
                 Document htmlDocument = connection.get();
                 this.htmlDocument = htmlDocument;
                 if (connection.response().statusCode() == 200) // 200 is the HTTP OK status code
@@ -58,20 +56,23 @@ public class SpiderLeg
                 }
                 Elements linksOnPage = htmlDocument.select( "a[href]" );
                 System.out.println( "Found (" + linksOnPage.size() + ") links" );
-                for (Element link : linksOnPage) {
-                    this.links.add( link.absUrl( "href" ) );
+                if (linksOnPage.size() == 0) {
+                    return false;
                 }
+                    for (Element link : linksOnPage) {
+                        this.links.add( link.absUrl( "href" ) );
+                    }
+
+               // }
                 return true;
             //}
         }
-        catch(IOException ioe)
-        {
+        catch(IOException ioe) {
+            //semaphore.release();
             // We were not successful in our HTTP request
             return false;
-
-        }finally {
-            semaphore.release();
         }
+
     }
 
 
@@ -89,7 +90,9 @@ public class SpiderLeg
         if(this.htmlDocument == null)
         {
             System.out.println("ERROR! Call crawl() before performing analysis on the document");
-           return false;
+            //System.out.println("Thread : "+Thread.currentThread().getName());
+           //return false;
+            return true;
         }
         System.out.println("Searching for the word " + searchWord + "...");
         String bodyText = this.htmlDocument.body().text();
